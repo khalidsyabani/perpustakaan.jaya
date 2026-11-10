@@ -25,11 +25,11 @@
     <form class="login-card" id="loginForm">
       <div class="brand" style="margin-bottom:28px"><div class="brand-mark">P</div><div>PERPUS JAYA<div class="small muted" style="font-weight:500">Sistem Informasi Perpustakaan</div></div></div>
       <h2>Masuk akun</h2><p class="muted" style="margin:5px 0 24px;font-size:14px">Masukkan akun untuk melanjutkan.</p>
-      <div class="field"><label>Username</label><input id="username" autocomplete="username" placeholder="Masukkan username" required></div>
+      <div class="field"><label>Email</label><input id="username" type="email" autocomplete="username" placeholder="nama@email.com" required></div>
       <div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" placeholder="Masukkan password" required></div>
       <div id="loginError" class="small" style="color:var(--red);margin-bottom:8px"></div>
       <button class="btn" type="submit">Masuk ke Perpustakaan →</button>
-      <div class="demo-note"><b>Akun demo:</b><br>Admin: <b>admin</b> / <b>admin123</b><br>Anggota: <b>siswa</b> / <b>siswa123</b><br><span style="color:#9a6a16">Demo lokal — ganti akun dan gunakan backend untuk penggunaan nyata.</span></div>
+      <div class="demo-note">Login menggunakan email dan password yang terdaftar di Supabase. Siswa dapat membuat akun melalui menu pendaftaran yang akan ditambahkan pada tahap berikutnya.</div>
     </form>
   </section>
 </div>
@@ -56,73 +56,158 @@
   </div>
 </div>
 <div id="modalRoot"></div><div id="toastRoot"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const KEY='perpusJayaData_v1', SESSION='perpusJayaSession_v1';
-const seed={
- users:[{id:'u1',name:'Administrator',username:'admin',password:'admin123',role:'admin',className:'-'},{id:'u2',name:'Siswa Demo',username:'siswa',password:'siswa123',role:'member',className:'XII RPL 1'}],
- books:[
- {id:'b1',title:'Laskar Pelangi',author:'Andrea Hirata',category:'Novel',publisher:'Bentang Pustaka',year:2005,stock:5,description:'Kisah persahabatan dan perjuangan anak-anak Belitung dalam meraih pendidikan.'},
- {id:'b2',title:'Bumi Manusia',author:'Pramoedya Ananta Toer',category:'Novel',publisher:'Lentera Dipantara',year:1980,stock:3,description:'Novel sejarah tentang kehidupan dan pemikiran pada masa kolonial.'},
- {id:'b3',title:'Atomic Habits',author:'James Clear',category:'Pengembangan Diri',publisher:'Gramedia',year:2018,stock:4,description:'Panduan membangun kebiasaan baik melalui perubahan kecil yang konsisten.'},
- {id:'b4',title:'Filosofi Teras',author:'Henry Manampiring',category:'Filsafat',publisher:'Kompas',year:2018,stock:2,description:'Pengantar filsafat Stoisisme untuk menghadapi kehidupan sehari-hari.'},
- {id:'b5',title:'Matematika SMA',author:'Sukino',category:'Pelajaran',publisher:'Erlangga',year:2022,stock:8,description:'Buku pendamping belajar matematika tingkat SMA.'},
- {id:'b6',title:'Pemrograman Web',author:'Riyanto',category:'Teknologi',publisher:'Informatika',year:2023,stock:6,description:'Dasar-dasar HTML, CSS, JavaScript, dan pengembangan web.'}
- ],loans:[]
-};
-let db=loadDB(),currentUser=null,currentPage='dashboard';
-function loadDB(){try{return JSON.parse(localStorage.getItem(KEY))||structuredClone(seed)}catch(e){return JSON.parse(JSON.stringify(seed))}}
-function saveDB(){localStorage.setItem(KEY,JSON.stringify(db))}
-function id(prefix){return prefix+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
-function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function fmtDate(d){return new Date(d).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}
-function toast(msg){const root=document.getElementById('toastRoot');root.innerHTML=`<div class="toast">${esc(msg)}</div>`;setTimeout(()=>root.innerHTML='',2600)}
-function isAdmin(){return currentUser?.role==='admin'}
-function activeLoans(){return db.loans.filter(x=>x.status==='Menunggu' || x.status==='Dipinjam')}
+/* PERPUS JAYA — Supabase online */
+const SUPABASE_URL = 'https://wenldpyxmhtdeqvwsrhx.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_7Cl1ROseO1D_KmTJF-Bz-Q_6nsyUPP3';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+let db = {books:[], loans:[], users:[]};
+let currentUser = null, currentPage = 'dashboard', currentProfile = null;
+const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmtDate(d){return d ? new Date(d).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '-'}
+function toast(msg){const root=document.getElementById('toastRoot');root.innerHTML=`<div class="toast">${esc(msg)}</div>`;setTimeout(()=>root.innerHTML='',3000)}
+function isAdmin(){return currentProfile?.role==='admin'}
+function activeLoans(){return db.loans.filter(x=>x.status==='Menunggu'||x.status==='Dipinjam')}
 function borrowedCount(bookId){return db.loans.filter(x=>x.bookId===bookId&&(x.status==='Menunggu'||x.status==='Dipinjam')).length}
 function available(book){return Math.max(0,Number(book.stock)-borrowedCount(book.id))}
 function bookById(id){return db.books.find(b=>b.id===id)}
 function userById(id){return db.users.find(u=>u.id===id)}
-document.getElementById('loginForm').addEventListener('submit',e=>{e.preventDefault();const username=document.getElementById('username').value.trim(),password=document.getElementById('password').value;const u=db.users.find(x=>x.username===username&&x.password===password);if(!u){document.getElementById('loginError').textContent='Username atau password tidak sesuai.';return}currentUser=u;sessionStorage.setItem(SESSION,u.id);showApp()});
-function showApp(){document.getElementById('loginView').classList.add('hidden');document.getElementById('appView').classList.remove('hidden');document.getElementById('userName').textContent=currentUser.name;document.getElementById('userRole').textContent=isAdmin()?'Administrator':'Anggota • '+(currentUser.className||'');document.getElementById('userAvatar').textContent=currentUser.name.charAt(0).toUpperCase();document.querySelectorAll('.admin-only').forEach(x=>x.classList.toggle('hidden',!isAdmin()));document.getElementById('loanNavText').textContent=isAdmin()?'Kelola Peminjaman':'Peminjaman Buku';go('dashboard')}
-function logout(){currentUser=null;sessionStorage.removeItem(SESSION);document.getElementById('appView').classList.add('hidden');document.getElementById('loginView').classList.remove('hidden');document.getElementById('password').value=''}
-document.getElementById('logoutBtn').onclick=logout;document.getElementById('sidebarLogout').onclick=logout;document.getElementById('menuToggle').onclick=()=>document.getElementById('sidebar').classList.toggle('open');
+function statusBadge(s){return `<span class="badge ${s==='Dipinjam'||s==='Dikembalikan'?'green':s==='Menunggu'?'orange':s==='Ditolak'?'red':''}">${esc(s)}</span>`}
+function showError(msg){const el=document.getElementById('loginError');if(el)el.textContent=msg}
+
+async function loadDB(){
+  const [bookRes, loanRes, userRes] = await Promise.all([
+    sb.from('books').select('*').order('title'),
+    sb.from('loans').select('*').order('created_at',{ascending:false}),
+    isAdmin() ? sb.from('profiles').select('*').order('full_name') : sb.from('profiles').select('*').eq('id',currentUser.id)
+  ]);
+  if(bookRes.error) throw bookRes.error;
+  if(loanRes.error) throw loanRes.error;
+  if(userRes.error) throw userRes.error;
+  db.books=(bookRes.data||[]).map(b=>({...b}));
+  db.loans=(loanRes.data||[]).map(l=>({
+    id:l.id, bookId:l.book_id, userId:l.user_id,
+    requestDate:l.created_at, dueDate:l.due_date,
+    status:({pending:'Menunggu',approved:'Dipinjam',rejected:'Ditolak',returned:'Dikembalikan'})[l.status]||l.status
+  }));
+  db.users=(userRes.data||[]).map(u=>({
+    id:u.id,name:u.full_name,username:u.email,email:u.email,
+    className:u.class_name,role:u.role,createdAt:u.created_at
+  }));
+}
+function saveDB(){ /* Data disimpan langsung ke Supabase melalui fungsi async masing-masing. */ }
+
+async function showApp(){
+  await loadDB();
+  const u=db.users.find(x=>x.id===currentUser.id);
+  currentProfile=u||currentProfile;
+  document.getElementById('loginView').classList.add('hidden');
+  document.getElementById('appView').classList.remove('hidden');
+  document.getElementById('userName').textContent=currentProfile.full_name||currentProfile.name||currentUser.email;
+  document.getElementById('userRole').textContent=isAdmin()?'Administrator':'Anggota • '+(currentProfile.class_name||currentProfile.className||'');
+  document.getElementById('userAvatar').textContent=(currentProfile.full_name||currentProfile.name||currentUser.email).charAt(0).toUpperCase();
+  document.querySelectorAll('.admin-only').forEach(x=>x.classList.toggle('hidden',!isAdmin()));
+  document.getElementById('loanNavText').textContent=isAdmin()?'Kelola Peminjaman':'Peminjaman Buku';
+  go('dashboard');
+}
+async function refreshPage(){try{await loadDB();go(currentPage)}catch(e){toast(e.message||'Gagal memuat data.')}}
+async function logout(){
+  await sb.auth.signOut();
+  currentUser=null;currentProfile=null;
+  document.getElementById('appView').classList.add('hidden');
+  document.getElementById('loginView').classList.remove('hidden');
+  document.getElementById('password').value='';
+}
+document.getElementById('loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const btn=e.currentTarget.querySelector('button[type="submit"]');
+  btn.disabled=true;showError('');
+  try{
+    const {data,error}=await sb.auth.signInWithPassword({
+      email:document.getElementById('username').value.trim(),
+      password:document.getElementById('password').value
+    });
+    if(error)throw error;
+    currentUser=data.user;
+    const {data:prof,error:profileError}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
+    if(profileError)throw profileError;
+    currentProfile=prof;
+    await showApp();
+  }catch(err){showError(err.message||'Email atau password tidak sesuai.')}
+  finally{btn.disabled=false}
+});
+document.getElementById('logoutBtn').onclick=logout;
+document.getElementById('sidebarLogout').onclick=logout;
+document.getElementById('menuToggle').onclick=()=>document.getElementById('sidebar').classList.toggle('open');
 document.querySelectorAll('.nav-btn[data-page]').forEach(b=>b.addEventListener('click',()=>{go(b.dataset.page);document.getElementById('sidebar').classList.remove('open')}));
-function go(page){currentPage=page;document.querySelectorAll('.nav-btn[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));const pages={dashboard:renderDashboard,catalog:renderCatalog,loans:renderLoans,history:renderHistory,books:renderBooks,members:renderMembers};(pages[page]||renderDashboard)()}
+function go(page){
+  currentPage=page;
+  document.querySelectorAll('.nav-btn[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+  const pages={dashboard:renderDashboard,catalog:renderCatalog,loans:renderLoans,history:renderHistory,books:renderBooks,members:renderMembers};
+  if((page==='books'||page==='members')&&!isAdmin()){toast('Akses khusus administrator.');page='dashboard';currentPage=page}
+  (pages[page]||renderDashboard)();
+}
 function head(title,sub,action=''){return `<div class="page-head"><div><h1>${title}</h1><p>${sub}</p></div>${action}</div>`}
 function stat(label,value,icon){return `<div class="stat"><div class="stat-top"><span>${label}</span><span class="stat-icon">${icon}</span></div><strong>${value}</strong></div>`}
 function renderDashboard(){
- const total= db.books.reduce((s,b)=>s+Number(b.stock),0),pending=db.loans.filter(x=>x.status==='Menunggu').length,borrowed=db.loans.filter(x=>x.status==='Dipinjam').length;
- let html=head(`Selamat datang, ${esc(currentUser.name.split(' ')[0])} 👋`,'Ringkasan aktivitas perpustakaan hari ini.');
+ const total=db.books.reduce((s,b)=>s+Number(b.stock),0),pending=db.loans.filter(x=>x.status==='Menunggu').length,borrowed=db.loans.filter(x=>x.status==='Dipinjam').length;
+ let html=head(`Selamat datang, ${esc((currentProfile.full_name||'Anggota').split(' ')[0])} 👋`,'Ringkasan aktivitas perpustakaan hari ini.');
  if(isAdmin())html+=`<div class="stats">${stat('Judul Buku',db.books.length,'▤')}${stat('Total Eksemplar',total,'▥')}${stat('Sedang Dipinjam',borrowed,'⇄')}${stat('Menunggu Persetujuan',pending,'◷')}</div>`;
  else {const mine=db.loans.filter(x=>x.userId===currentUser.id);html+=`<div class="stats">${stat('Koleksi Buku',db.books.length,'▤')}${stat('Pinjaman Aktif',mine.filter(x=>x.status==='Dipinjam').length,'⇄')}${stat('Menunggu',mine.filter(x=>x.status==='Menunggu').length,'◷')}${stat('Selesai',mine.filter(x=>x.status==='Dikembalikan').length,'✓')}</div>`}
  html+=`<div class="panel"><div class="panel-head"><h3>${isAdmin()?'Aktivitas Peminjaman Terbaru':'Koleksi Pilihan'}</h3><button class="btn secondary smallbtn" onclick="go('${isAdmin()?'loans':'catalog'}')">Lihat semua</button></div>`;
- if(isAdmin())html+=loanTable(db.loans.slice().reverse().slice(0,5),false);
- else html+=bookCards(db.books.slice(0,4));
- html+='</div><div class="panel"><h3 style="margin:0 0 8px">Informasi Perpustakaan</h3><p class="muted" style="font-size:13px;line-height:1.8;margin:0">PERPUS JAYA membantu warga sekolah mengakses koleksi bacaan dan mengelola layanan peminjaman secara praktis. Jaga buku yang dipinjam dan kembalikan sesuai tanggal yang ditentukan.</p></div>';
+ html+=isAdmin()?loanTable(db.loans.slice(0,5),true):bookCards(db.books.slice(0,4));
+ html+='</div><div class="panel"><h3 style="margin:0 0 8px">Informasi Perpustakaan</h3><p class="muted" style="font-size:13px;line-height:1.8;margin:0">PERPUS JAYA membantu warga sekolah mengakses koleksi bacaan dan mengelola layanan peminjaman secara praktis.</p></div>';
  document.getElementById('mainContent').innerHTML=html;
 }
-function bookCards(list){if(!list.length)return '<div class="empty">Belum ada buku yang tersedia.</div>';return `<div class="book-grid">${list.map(b=>`<article class="book-card"><div class="cover">▤</div><div class="book-info"><h3>${esc(b.title)}</h3><p>${esc(b.author)} · ${esc(b.category)}</p><div class="book-actions"><span class="badge ${available(b)>0?'green':'red'}">${available(b)} tersedia</span><button class="btn smallbtn" onclick="requestLoan('${b.id}')" ${available(b)<=0?'disabled':''}>Pinjam</button></div></div></article>`).join('')}</div>`}
+function bookCards(list){if(!list.length)return '<div class="empty">Belum ada buku yang tersedia.</div>';return `<div class="book-grid">${list.map(b=>`<article class="book-card"><div class="cover">▤</div><div class="book-info"><h3>${esc(b.title)}</h3><p>${esc(b.author)} · ${esc(b.category)}</p><div class="book-actions"><span class="badge ${available(b)>0?'green':'red'}">${available(b)} tersedia</span><button class="btn smallbtn" onclick="requestLoan('${b.id}')" ${available(b)<=0||isAdmin()?'disabled':''}>Pinjam</button></div></div></article>`).join('')}</div>`}
 function renderCatalog(){document.getElementById('mainContent').innerHTML=head('Katalog Buku','Temukan buku berdasarkan judul, penulis, atau kategori.')+`<div class="panel"><div class="toolbar"><input id="bookSearch" class="search" placeholder="Cari judul atau penulis..." oninput="filterCatalog()"><select id="catFilter" onchange="filterCatalog()"><option value="">Semua kategori</option>${[...new Set(db.books.map(b=>b.category))].map(c=>`<option>${esc(c)}</option>`).join('')}</select></div><div id="catalogResults">${bookCards(db.books)}</div></div>`}
-function filterCatalog(){const q=document.getElementById('bookSearch').value.toLowerCase(),cat=document.getElementById('catFilter').value;const list=db.books.filter(b=>(b.title+' '+b.author+' '+b.category).toLowerCase().includes(q)&&(!cat||b.category===cat));document.getElementById('catalogResults').innerHTML=bookCards(list)}
-function requestLoan(bookId){const b=bookById(bookId);if(!b||available(b)<=0){toast('Stok buku tidak tersedia.');return}if(!currentUser||isAdmin()){toast('Login sebagai anggota untuk meminjam buku.');return}if(db.loans.some(x=>x.bookId===bookId&&x.userId===currentUser.id&&(x.status==='Menunggu'||x.status==='Dipinjam'))){toast('Kamu masih memiliki pinjaman aktif untuk buku ini.');return}db.loans.push({id:id('l'),bookId,userId:currentUser.id,requestDate:new Date().toISOString(),dueDate:new Date(Date.now()+7*86400000).toISOString(),status:'Menunggu'});saveDB();toast('Permintaan peminjaman dikirim ke admin.');go(currentPage)}
-function loanTable(list,showMember=true){if(!list.length)return '<div class="empty">Belum ada data peminjaman.</div>';return `<div class="table-wrap"><table><thead><tr><th>Buku</th>${showMember?'<th>Anggota</th>':''}<th>Tanggal</th><th>Batas kembali</th><th>Status</th>${isAdmin()?'<th>Aksi</th>':''}</tr></thead><tbody>${list.map(l=>{const b=bookById(l.bookId)||{title:'Buku dihapus'},u=userById(l.userId)||{name:'Anggota dihapus'};return `<tr><td><b>${esc(b.title)}</b></td>${showMember?`<td>${esc(u.name)}</td>`:''}<td>${fmtDate(l.requestDate)}</td><td>${fmtDate(l.dueDate)}</td><td>${statusBadge(l.status)}</td>${isAdmin()?`<td>${l.status==='Menunggu'?`<button class="btn success smallbtn" onclick="approveLoan('${l.id}')">Setujui</button> <button class="btn danger smallbtn" onclick="rejectLoan('${l.id}')">Tolak</button>`:l.status==='Dipinjam'?`<button class="btn secondary smallbtn" onclick="returnLoan('${l.id}')">Kembalikan</button>`:'—'}</td>`:''}</tr>`}).join('')}</tbody></table></div>`}
-function statusBadge(s){return `<span class="badge ${s==='Dipinjam'?'green':s==='Menunggu'?'orange':s==='Ditolak'?'red':''}">${s}</span>`}
-function renderLoans(){let list=isAdmin()?db.loans.slice().reverse():db.loans.filter(x=>x.userId===currentUser.id).slice().reverse();document.getElementById('mainContent').innerHTML=head(isAdmin()?'Kelola Peminjaman':'Peminjaman Buku',isAdmin()?'Tinjau permintaan dan proses pengembalian buku.':'Pantau status permintaan peminjamanmu.')+`<div class="panel">${loanTable(list,!isAdmin())}</div>`}
-function renderHistory(){let list=db.loans.filter(x=>x.userId===currentUser.id&&x.status==='Dikembalikan').reverse();document.getElementById('mainContent').innerHTML=head('Riwayat Saya','Daftar buku yang telah kamu kembalikan.')+`<div class="panel">${loanTable(list,false)}</div>`}
-function approveLoan(lid){const l=db.loans.find(x=>x.id===lid);if(!l||l.status!=='Menunggu')return;if(available(bookById(l.bookId))<=0){toast('Stok tidak cukup untuk menyetujui.');return}l.status='Dipinjam';l.approvedDate=new Date().toISOString();saveDB();toast('Peminjaman disetujui.');renderLoans()}
-function rejectLoan(lid){const l=db.loans.find(x=>x.id===lid);if(l){l.status='Ditolak';saveDB();toast('Permintaan ditolak.');renderLoans()}}
-function returnLoan(lid){const l=db.loans.find(x=>x.id===lid);if(l){l.status='Dikembalikan';l.returnDate=new Date().toISOString();saveDB();toast('Buku berhasil dicatat sudah kembali.');renderLoans()}}
+function filterCatalog(){const q=document.getElementById('bookSearch').value.toLowerCase(),cat=document.getElementById('catFilter').value;document.getElementById('catalogResults').innerHTML=bookCards(db.books.filter(b=>(b.title+' '+b.author+' '+b.category).toLowerCase().includes(q)&&(!cat||b.category===cat)))}
+async function requestLoan(bookId){
+ try{const {error}=await sb.rpc('request_book',{p_book_id:bookId});if(error)throw error;toast('Permintaan peminjaman dikirim ke admin.');await refreshPage()}
+ catch(e){toast(e.message||'Gagal mengajukan peminjaman.')}
+}
+function loanTable(list,showMember=true){
+ if(!list.length)return '<div class="empty">Belum ada data peminjaman.</div>';
+ return `<div class="table-wrap"><table><thead><tr><th>Buku</th>${showMember?'<th>Anggota</th>':''}<th>Tanggal</th><th>Batas kembali</th><th>Status</th>${isAdmin()?'<th>Aksi</th>':''}</tr></thead><tbody>${list.map(l=>{const b=bookById(l.bookId)||{title:'Buku dihapus'},u=userById(l.userId)||{name:'Anggota'};return `<tr><td><b>${esc(b.title)}</b></td>${showMember?`<td>${esc(u.name)}</td>`:''}<td>${fmtDate(l.requestDate)}</td><td>${fmtDate(l.dueDate)}</td><td>${statusBadge(l.status)}</td>${isAdmin()?`<td>${l.status==='Menunggu'?`<button class="btn success smallbtn" onclick="loanAction('${l.id}','approve')">Setujui</button> <button class="btn danger smallbtn" onclick="loanAction('${l.id}','reject')">Tolak</button>`:l.status==='Dipinjam'?`<button class="btn secondary smallbtn" onclick="loanAction('${l.id}','return')">Kembalikan</button>`:'—'}</td>`:''}</tr>`}).join('')}</tbody></table></div>`;
+}
+function renderLoans(){const list=isAdmin()?db.loans:db.loans.filter(x=>x.userId===currentUser.id);document.getElementById('mainContent').innerHTML=head(isAdmin()?'Kelola Peminjaman':'Peminjaman Buku',isAdmin()?'Tinjau permintaan dan proses pengembalian buku.':'Pantau status permintaan peminjamanmu.')+`<div class="panel">${loanTable(list,isAdmin())}</div>`}
+function renderHistory(){const list=db.loans.filter(x=>x.userId===currentUser.id&&x.status==='Dikembalikan');document.getElementById('mainContent').innerHTML=head('Riwayat Saya','Daftar buku yang telah kamu kembalikan.')+`<div class="panel">${loanTable(list,false)}</div>`}
+async function loanAction(lid,action){
+ try{const fn={approve:'approve_loan',reject:'reject_loan',return:'return_loan'}[action];const {error}=await sb.rpc(fn,{p_loan_id:lid});if(error)throw error;toast('Status peminjaman diperbarui.');await refreshPage()}
+ catch(e){toast(e.message||'Gagal memperbarui transaksi.')}
+}
 function renderBooks(){document.getElementById('mainContent').innerHTML=head('Kelola Buku','Tambah, ubah, dan hapus koleksi perpustakaan.',`<button class="btn" onclick="bookModal()">＋ Tambah Buku</button>`)+`<div class="panel"><div class="toolbar"><input class="search" id="manageSearch" placeholder="Cari buku..." oninput="filterManageBooks()"></div><div id="manageBookTable">${bookTable(db.books)}</div></div>`}
 function bookTable(list){if(!list.length)return '<div class="empty">Buku tidak ditemukan.</div>';return `<div class="table-wrap"><table><thead><tr><th>Judul</th><th>Penulis</th><th>Kategori</th><th>Tahun</th><th>Stok total</th><th>Tersedia</th><th>Aksi</th></tr></thead><tbody>${list.map(b=>`<tr><td><b>${esc(b.title)}</b></td><td>${esc(b.author)}</td><td>${esc(b.category)}</td><td>${esc(b.year)}</td><td>${b.stock}</td><td>${available(b)}</td><td><button class="btn secondary smallbtn" onclick="bookModal('${b.id}')">Edit</button> <button class="btn danger smallbtn" onclick="deleteBook('${b.id}')">Hapus</button></td></tr>`).join('')}</tbody></table></div>`}
 function filterManageBooks(){const q=document.getElementById('manageSearch').value.toLowerCase();document.getElementById('manageBookTable').innerHTML=bookTable(db.books.filter(b=>(b.title+' '+b.author).toLowerCase().includes(q)))}
-function bookModal(bookIdValue=''){const b=bookById(bookIdValue)||{title:'',author:'',category:'Pelajaran',publisher:'',year:new Date().getFullYear(),stock:1,description:''};showModal(`${bookIdValue?'Edit':'Tambah'} Buku`,`<form id="bookForm"><div class="field"><label>Judul buku</label><input name="title" required value="${esc(b.title)}"></div><div class="form-grid"><div class="field"><label>Penulis</label><input name="author" required value="${esc(b.author)}"></div><div class="field"><label>Kategori</label><input name="category" required value="${esc(b.category)}"></div><div class="field"><label>Penerbit</label><input name="publisher" value="${esc(b.publisher)}"></div><div class="field"><label>Tahun terbit</label><input name="year" type="number" min="1000" max="2100" value="${esc(b.year)}"></div><div class="field"><label>Jumlah stok</label><input name="stock" type="number" min="0" value="${b.stock}" required></div></div><div class="field"><label>Sinopsis</label><textarea name="description" rows="3">${esc(b.description)}</textarea></div><button class="btn" style="width:100%">Simpan Buku</button></form>`);document.getElementById('bookForm').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),obj=Object.fromEntries(f.entries());obj.year=Number(obj.year);obj.stock=Number(obj.stock);if(bookIdValue){Object.assign(bookById(bookIdValue),obj)}else db.books.push({id:id('b'),...obj});saveDB();closeModal();toast('Data buku tersimpan.');renderBooks()}}
-function deleteBook(bid){if(db.loans.some(l=>l.bookId===bid&&(l.status==='Menunggu'||l.status==='Dipinjam'))){toast('Buku memiliki peminjaman aktif, tidak bisa dihapus.');return}if(confirm('Hapus buku ini dari katalog?')){db.books=db.books.filter(b=>b.id!==bid);saveDB();renderBooks();toast('Buku dihapus.')}}
-function renderMembers(){const members=db.users.filter(u=>u.role==='member');document.getElementById('mainContent').innerHTML=head('Kelola Anggota','Kelola akun siswa yang dapat menggunakan perpustakaan.',`<button class="btn" onclick="memberModal()">＋ Tambah Anggota</button>`)+`<div class="panel"><div class="table-wrap"><table><thead><tr><th>Nama</th><th>Username</th><th>Kelas</th><th>Pinjaman aktif</th><th>Aksi</th></tr></thead><tbody>${members.map(u=>`<tr><td><b>${esc(u.name)}</b></td><td>${esc(u.username)}</td><td>${esc(u.className||'-')}</td><td>${db.loans.filter(l=>l.userId===u.id&&(l.status==='Menunggu'||l.status==='Dipinjam')).length}</td><td><button class="btn danger smallbtn" onclick="deleteMember('${u.id}')">Hapus</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">Belum ada anggota.</td></tr>'}</tbody></table></div></div>`}
-function memberModal(){showModal('Tambah Anggota',`<form id="memberForm"><div class="field"><label>Nama lengkap</label><input name="name" required></div><div class="field"><label>Username</label><input name="username" required></div><div class="field"><label>Password</label><input name="password" required minlength="4"></div><div class="field"><label>Kelas</label><input name="className" placeholder="Contoh: XII RPL 1"></div><button class="btn" style="width:100%">Buat Akun Anggota</button></form>`);document.getElementById('memberForm').onsubmit=e=>{e.preventDefault();const o=Object.fromEntries(new FormData(e.target).entries());if(db.users.some(u=>u.username===o.username)){toast('Username sudah digunakan.');return}db.users.push({id:id('u'),...o,role:'member'});saveDB();closeModal();renderMembers();toast('Anggota berhasil ditambahkan.')}}
-function deleteMember(uid){if(db.loans.some(l=>l.userId===uid&&(l.status==='Menunggu'||l.status==='Dipinjam'))){toast('Anggota masih memiliki pinjaman aktif.');return}if(confirm('Hapus akun anggota ini?')){db.users=db.users.filter(u=>u.id!==uid);saveDB();renderMembers();toast('Anggota dihapus.')}}
+function bookModal(bookIdValue=''){
+ const b=bookById(bookIdValue)||{title:'',author:'',category:'Pelajaran',publisher:'',year:new Date().getFullYear(),stock:1,description:''};
+ showModal(`${bookIdValue?'Edit':'Tambah'} Buku`,`<form id="bookForm"><div class="field"><label>Judul buku</label><input name="title" required value="${esc(b.title)}"></div><div class="form-grid"><div class="field"><label>Penulis</label><input name="author" required value="${esc(b.author)}"></div><div class="field"><label>Kategori</label><input name="category" required value="${esc(b.category)}"></div><div class="field"><label>Penerbit</label><input name="publisher" value="${esc(b.publisher||'')}"></div><div class="field"><label>Tahun terbit</label><input name="year" type="number" min="1000" max="2100" value="${esc(b.year||'')}"></div><div class="field"><label>Jumlah stok</label><input name="stock" type="number" min="0" value="${b.stock}" required></div></div><div class="field"><label>Sinopsis</label><textarea name="description" rows="3">${esc(b.description||'')}</textarea></div><button class="btn" style="width:100%">Simpan Buku</button></form>`);
+ document.getElementById('bookForm').onsubmit=async e=>{e.preventDefault();const obj=Object.fromEntries(new FormData(e.target));obj.year=Number(obj.year)||null;obj.stock=Number(obj.stock);try{const res=bookIdValue?await sb.from('books').update(obj).eq('id',bookIdValue):await sb.from('books').insert(obj);if(res.error)throw res.error;closeModal();toast('Data buku tersimpan.');await refreshPage()}catch(err){toast(err.message)}};
+}
+async function deleteBook(id){if(!confirm('Hapus buku ini?'))return;try{const {error}=await sb.from('books').delete().eq('id',id);if(error)throw error;toast('Buku dihapus.');await refreshPage()}catch(e){toast(e.message)}}
+function renderMembers(){
+ const list=db.users.filter(u=>u.role==='member');
+ document.getElementById('mainContent').innerHTML=head('Kelola Anggota','Daftar akun siswa yang terdaftar.')+`<div class="panel"><div class="table-wrap"><table><thead><tr><th>Nama</th><th>Email</th><th>Kelas</th><th>Terdaftar</th></tr></thead><tbody>${list.map(u=>`<tr><td><b>${esc(u.name)}</b></td><td>${esc(u.email||'')}</td><td>${esc(u.className||'-')}</td><td>${fmtDate(u.createdAt)}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">Belum ada anggota.</td></tr>'}</tbody></table></div></div>`;
+}
 function showModal(title,body){document.getElementById('modalRoot').innerHTML=`<div class="modal-backdrop" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="modal-head"><h2>${title}</h2><button class="close" onclick="closeModal()">✕</button></div>${body}</div></div>`}
 function closeModal(){document.getElementById('modalRoot').innerHTML=''}
-const savedSession=sessionStorage.getItem(SESSION);if(savedSession){currentUser=db.users.find(u=>u.id===savedSession)||null;if(currentUser)showApp();else logout()}
+async function init(){
+ const {data,error}=await sb.auth.getSession();
+ if(error){showError(error.message);return}
+ if(data.session){
+   currentUser=data.session.user;
+   const {data:prof,error:pe}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
+   if(pe){showError('Profil belum tersedia: '+pe.message);return}
+   currentProfile=prof;
+   try{await showApp()}catch(e){showError('Gagal memuat data: '+e.message)}
+ }
+}
+sb.auth.onAuthStateChange((event,session)=>{
+ if(event==='SIGNED_OUT'){currentUser=null;currentProfile=null}
+});
+init();
 </script>
 </body>
 </html>
