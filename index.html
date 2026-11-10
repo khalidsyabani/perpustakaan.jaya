@@ -29,7 +29,19 @@
       <div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" placeholder="Masukkan password" required></div>
       <div id="loginError" class="small" style="color:var(--red);margin-bottom:8px"></div>
       <button class="btn" type="submit">Masuk ke Perpustakaan →</button>
-      <div class="demo-note">Login menggunakan email dan password yang terdaftar di Supabase. Siswa dapat membuat akun melalui menu pendaftaran yang akan ditambahkan pada tahap berikutnya.</div>
+      <div class="demo-note">Belum punya akun? Siswa dapat mendaftar menggunakan email aktif dan data kelas.</div>
+      <button class="btn secondary" type="button" id="showRegister" style="width:100%;margin-top:12px">Daftar sebagai Siswa</button>
+    </form>
+    <form class="login-card hidden" id="registerForm">
+      <div class="brand" style="margin-bottom:28px"><div class="brand-mark">P</div><div>PERPUS JAYA<div class="small muted" style="font-weight:500">Pendaftaran Anggota</div></div></div>
+      <h2>Daftar akun siswa</h2><p class="muted" style="margin:5px 0 24px;font-size:14px">Isi data berikut untuk membuat akun perpustakaan.</p>
+      <div class="field"><label>Nama lengkap</label><input id="regName" autocomplete="name" placeholder="Nama lengkap" required></div>
+      <div class="field"><label>Kelas</label><input id="regClass" placeholder="Contoh: XII RPL 1" required></div>
+      <div class="field"><label>Email aktif</label><input id="regEmail" type="email" autocomplete="email" placeholder="nama@email.com" required></div>
+      <div class="field"><label>Password (minimal 6 karakter)</label><input id="regPassword" type="password" minlength="6" autocomplete="new-password" placeholder="Buat password" required></div>
+      <div id="registerError" class="small" style="color:var(--red);margin-bottom:8px"></div>
+      <button class="btn" type="submit">Buat Akun Siswa →</button>
+      <button class="btn secondary" type="button" id="showLogin" style="width:100%;margin-top:12px">Kembali ke Login</button>
     </form>
   </section>
 </div>
@@ -138,6 +150,50 @@ document.getElementById('loginForm').addEventListener('submit',async e=>{
   }catch(err){showError(err.message||'Email atau password tidak sesuai.')}
   finally{btn.disabled=false}
 });
+
+document.getElementById('showRegister').onclick=()=>{
+  document.getElementById('loginForm').classList.add('hidden');
+  document.getElementById('registerForm').classList.remove('hidden');
+  showError('');
+};
+document.getElementById('showLogin').onclick=()=>{
+  document.getElementById('registerForm').classList.add('hidden');
+  document.getElementById('loginForm').classList.remove('hidden');
+  document.getElementById('registerError').textContent='';
+};
+document.getElementById('registerForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const btn=e.currentTarget.querySelector('button[type="submit"]');
+  const err=document.getElementById('registerError');
+  btn.disabled=true;err.textContent='';
+  const fullName=document.getElementById('regName').value.trim();
+  const className=document.getElementById('regClass').value.trim();
+  const email=document.getElementById('regEmail').value.trim();
+  const password=document.getElementById('regPassword').value;
+  try{
+    const {data,error}=await sb.auth.signUp({
+      email,password,
+      options:{data:{full_name:fullName,class_name:className}}
+    });
+    if(error)throw error;
+    if(data.session){
+      currentUser=data.user;
+      const {data:prof,error:pe}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
+      if(pe)throw pe;
+      currentProfile=prof;
+      await showApp();
+      toast('Pendaftaran berhasil. Selamat datang di PERPUS JAYA!');
+    }else{
+      err.style.color='var(--green)';
+      err.textContent='Pendaftaran berhasil. Silakan cek email untuk verifikasi, lalu login.';
+      e.currentTarget.reset();
+    }
+  }catch(error){
+    err.style.color='var(--red)';
+    err.textContent=error.message||'Pendaftaran gagal. Periksa kembali data kamu.';
+  }finally{btn.disabled=false}
+});
+
 document.getElementById('logoutBtn').onclick=logout;
 document.getElementById('sidebarLogout').onclick=logout;
 document.getElementById('menuToggle').onclick=()=>document.getElementById('sidebar').classList.toggle('open');
