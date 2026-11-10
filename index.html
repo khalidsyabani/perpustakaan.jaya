@@ -4,13 +4,75 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#10243a">
-<title>PERPUS JAYA — Perpustakaan Sekolah</title>
+<title>Perpustakaan Jaya | Sistem Informasi Perpustakaan</title>
+<link rel="icon" type="image/png" href="favicon-perpustakaan-jaya.png">
+<link rel="apple-touch-icon" href="favicon-perpustakaan-jaya.png">
+<meta name="description" content="Perpustakaan Jaya — layanan literasi, katalog, dan peminjaman buku sekolah.">
 <style>
 :root{--navy:#10243a;--navy2:#183653;--blue:#2864a6;--cyan:#58c4d8;--gold:#e8b85c;--bg:#f3f6fa;--card:#fff;--text:#172638;--muted:#718096;--line:#e6ebf1;--green:#198754;--red:#dc3545;--shadow:0 12px 35px #14283d12}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;border:0}.hidden{display:none!important}.muted{color:var(--muted)}.small{font-size:12px}.container{max-width:1200px;margin:auto;padding:24px}.btn{padding:10px 15px;border-radius:10px;background:var(--blue);color:#fff;font-weight:650;transition:.2s}.btn:hover{filter:brightness(1.08);transform:translateY(-1px)}.btn.secondary{background:#eaf0f7;color:var(--navy)}.btn.danger{background:#fff0f0;color:var(--red)}.btn.success{background:#e8f7ef;color:var(--green)}.btn.gold{background:var(--gold);color:#253044}.btn.smallbtn{padding:7px 10px;font-size:12px}.field{display:grid;gap:6px;margin-bottom:13px}.field label{font-size:13px;font-weight:650;color:#405166}.field input,.field select,.field textarea,.search{width:100%;border:1px solid var(--line);background:#fff;padding:11px 12px;border-radius:10px;outline:none;color:var(--text)}.field input:focus,.field select:focus,.field textarea:focus,.search:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2864a615}.login-wrap{min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr;background:#fff}.login-hero{background:linear-gradient(145deg,#10243a,#1b4567 65%,#28718a);color:#fff;padding:8vw;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}.login-hero:after{content:"";position:absolute;width:420px;height:420px;border:1px solid #ffffff20;border-radius:50%;right:-120px;bottom:-170px;box-shadow:0 0 0 55px #ffffff08,0 0 0 110px #ffffff06}.brand-mark{width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,var(--gold),#f4d994);display:grid;place-items:center;color:var(--navy);font-size:25px;font-weight:900}.brand-logo{width:116px;height:116px;object-fit:contain;display:block;filter:drop-shadow(0 8px 18px #0002)}.brand .brand-logo{width:54px;height:54px;filter:none}.topbar .brand .brand-logo{width:46px;height:46px}.login-hero h1{font-size:clamp(38px,5vw,64px);line-height:1.05;margin:26px 0 14px;max-width:540px}.login-hero p{color:#d3e1ee;max-width:480px;line-height:1.8}.login-panel{display:grid;place-items:center;padding:30px}.login-card{width:min(420px,100%)}.login-card h2{font-size:28px;margin:0 0 8px}.login-card .btn{width:100%;padding:13px;margin-top:5px}.demo-note{background:#f1f6fb;padding:12px;border-radius:10px;margin-top:18px;font-size:12px;line-height:1.7;color:#526276}.topbar{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:5}.brand{display:flex;align-items:center;gap:11px;font-weight:850;letter-spacing:.3px;color:var(--navy)}.brand .brand-mark{width:40px;height:40px;border-radius:12px;font-size:19px}.userbox{display:flex;align-items:center;gap:12px}.avatar{width:37px;height:37px;border-radius:50%;display:grid;place-items:center;background:#e8f0fa;color:var(--blue);font-weight:800}.layout{display:grid;grid-template-columns:235px 1fr;min-height:calc(100vh - 72px)}.sidebar{background:var(--navy);padding:22px 14px;color:#d8e2ed}.side-label{font-size:10px;letter-spacing:1.5px;color:#8197ad;font-weight:800;padding:15px 12px 8px}.nav-btn{width:100%;display:flex;align-items:center;gap:12px;text-align:left;color:#c4d2df;background:transparent;padding:12px;border-radius:10px;margin:2px 0;font-weight:600}.nav-btn:hover,.nav-btn.active{background:#ffffff15;color:#fff}.nav-btn.active{box-shadow:inset 3px 0 var(--gold)}.main{padding:28px;min-width:0}.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:23px}.page-head h1{font-size:26px;margin:0 0 6px;color:var(--navy)}.page-head p{margin:0;color:var(--muted);font-size:14px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:22px}.stat,.panel{background:var(--card);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow)}.stat{padding:18px}.stat-top{display:flex;justify-content:space-between;color:var(--muted);font-size:13px}.stat-icon{width:35px;height:35px;border-radius:10px;background:#edf4fc;display:grid;place-items:center;color:var(--blue);font-size:18px}.stat strong{display:block;font-size:28px;color:var(--navy);margin-top:12px}.panel{padding:20px;margin-bottom:18px}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}.panel-head h3{margin:0;color:var(--navy);font-size:16px}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:650px}th,td{text-align:left;padding:12px 11px;border-bottom:1px solid var(--line);font-size:13px}th{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:#77879a;background:#f8fafc}td{color:#405166}tr:last-child td{border-bottom:0}.badge{display:inline-flex;padding:5px 9px;border-radius:30px;font-size:11px;font-weight:750;background:#eef2f6;color:#64748b}.badge.green{background:#e7f6ed;color:#198754}.badge.orange{background:#fff3dc;color:#a56a0a}.badge.red{background:#ffeded;color:#c33}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}.toolbar .search{max-width:300px}.toolbar select{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}.book-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}.book-card{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}.cover{height:170px;background:linear-gradient(135deg,#173a5b,#327b91);display:grid;place-items:center;color:#fff;font-size:45px;position:relative;overflow:hidden}.cover img{width:100%;height:100%;object-fit:cover}.cover:after{content:"";position:absolute;inset:12px;border:1px solid #ffffff55;border-radius:7px;pointer-events:none}.book-info{padding:14px;display:flex;flex-direction:column;flex:1}.book-info h3{font-size:14px;margin:0 0 6px;line-height:1.4}.book-info p{font-size:12px;color:var(--muted);margin:0 0 12px}.book-info .book-actions{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:8px}.empty{text-align:center;padding:38px;color:var(--muted)}.modal-backdrop{position:fixed;inset:0;background:#0b1b2dcc;display:grid;place-items:center;padding:18px;z-index:20}.modal{background:#fff;border-radius:16px;padding:22px;width:min(520px,100%);max-height:90vh;overflow:auto;box-shadow:0 25px 80px #0004}.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.modal-head h2{margin:0;font-size:19px}.close{background:#eef2f6;border-radius:9px;padding:7px 10px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.toast{position:fixed;bottom:22px;right:22px;background:#142b43;color:white;padding:13px 17px;border-radius:11px;box-shadow:var(--shadow);z-index:40;animation:rise .25s ease}@keyframes rise{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}.mobile-menu{display:none}.footer-note{font-size:11px;color:#90a2b5;text-align:center;padding:18px 0 4px}
 @media(max-width:1050px){.book-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.stats{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:760px){.login-wrap{grid-template-columns:1fr}.login-hero{padding:38px 28px;min-height:300px}.login-hero h1{font-size:42px;margin:17px 0 8px}.login-panel{padding:35px 24px}.topbar{padding:0 15px;height:64px}.layout{grid-template-columns:1fr}.sidebar{display:none;position:fixed;top:64px;left:0;bottom:0;width:250px;z-index:10;box-shadow:10px 0 30px #0002}.sidebar.open{display:block}.mobile-menu{display:inline-flex;background:#eef3f8;color:var(--navy);padding:9px;border-radius:9px}.main{padding:20px 14px}.page-head{align-items:center}.page-head h1{font-size:22px}.stats{gap:10px}.stat{padding:14px}.stat strong{font-size:24px}.book-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.cover{height:135px}.book-info{padding:11px}.book-info h3{font-size:13px}.panel{padding:14px}.userbox .user-name{display:none}}
 @media(max-width:390px){.book-grid{grid-template-columns:1fr 1fr}.cover{height:115px}.stats{grid-template-columns:1fr 1fr}.stat strong{font-size:21px}}
+
+/* ===== PERPUSTAKAAN JAYA — PREMIUM VISUAL REFRESH ===== */
+:root{--navy:#10243a;--navy2:#1b3d5b;--blue:#245b91;--gold:#d9aa50;--bg:#f4f6fa;--card:#fff;--text:#172638;--muted:#718096;--line:#e8edf3;--shadow:0 18px 45px rgba(16,36,58,.075)}
+body{background:radial-gradient(circle at 8% 0%,#e9f0f8 0,transparent 28%),#f5f7fb;color:var(--text);letter-spacing:.005em}
+button,.btn,.nav-btn,.book-card,.stat,.panel{transition:all .24s ease}
+.btn{border-radius:12px;background:linear-gradient(135deg,#244f7b,#183653);box-shadow:0 7px 16px #18365320}
+.btn:hover{transform:translateY(-2px);box-shadow:0 11px 22px #1836532b}
+.btn.secondary{background:#edf2f8;color:#193a59;box-shadow:none}.btn.secondary:hover{background:#e2eaf3}
+.btn.gold{background:linear-gradient(135deg,#e8c477,#d6a448);color:#26364a}
+.field input,.field select,.field textarea,.search,.toolbar select{border-radius:12px;border-color:#e2e8f0;padding:12px 14px;transition:.2s}
+.login-wrap{min-height:100vh;grid-template-columns:1.08fr .92fr;background:#fff;overflow:hidden}
+.login-hero{padding:clamp(34px,7vw,100px);background:radial-gradient(circle at 82% 18%,#3b6688 0,transparent 30%),linear-gradient(145deg,#0c2035 0%,#173b5b 58%,#245574 100%);isolation:isolate}
+.login-hero:before{content:"";position:absolute;inset:0;z-index:-1;opacity:.15;background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:46px 46px;mask-image:linear-gradient(135deg,#000,transparent 75%)}
+.login-hero:after{width:520px;height:520px;right:-190px;bottom:-250px;border:1px solid #ffffff25;box-shadow:0 0 0 65px #ffffff08,0 0 0 130px #ffffff06,0 0 0 195px #ffffff04}
+.login-hero .brand-logo{width:150px;height:150px;padding:12px;border-radius:28px;background:#fff;box-shadow:0 18px 50px #0003;object-fit:contain}
+.login-hero h1{font-size:clamp(38px,5vw,66px);letter-spacing:-.045em;line-height:1.02;margin:30px 0 16px}
+.login-hero p{font-size:15px;color:#d6e4f0;line-height:1.9;max-width:470px}
+.login-panel{background:linear-gradient(145deg,#fff,#f8fafd);padding:clamp(24px,5vw,70px)}
+.login-card{width:min(430px,100%);padding:clamp(22px,3vw,38px);background:#fff;border:1px solid #edf1f5;border-radius:25px;box-shadow:0 24px 70px #14283d12}
+.login-card h2{font-size:30px;letter-spacing:-.04em;color:#142b43}
+.login-card .brand{padding-bottom:18px;border-bottom:1px solid #edf1f5}
+.login-card .brand-logo{width:52px;height:52px;padding:3px;border-radius:13px;background:#f3f6fa;object-fit:contain}
+.demo-note{background:#f3f6fa;border:1px solid #e9eef4;border-radius:13px}
+.topbar{height:76px;padding:0 clamp(16px,3vw,38px);background:#ffffffed;backdrop-filter:blur(18px);border-bottom:1px solid #e9eef4;box-shadow:0 5px 24px #14283d08}
+.topbar .brand{font-size:15px;letter-spacing:.06em}
+.topbar .brand-logo{width:48px;height:48px;padding:3px;background:#f5f7fa;border-radius:14px;object-fit:contain}
+.layout{grid-template-columns:250px 1fr}
+.sidebar{background:linear-gradient(180deg,#10243a,#142f49);padding:25px 16px;box-shadow:8px 0 28px #10243a0b}
+.side-label{color:#9aafc3;letter-spacing:1.7px}
+.nav-btn{border-radius:12px;padding:13px 14px;color:#c7d5e2}
+.nav-btn:hover,.nav-btn.active{background:linear-gradient(90deg,#ffffff1c,#ffffff0a);color:#fff}
+.nav-btn.active{box-shadow:inset 3px 0 #e8bd6b}
+.main{padding:clamp(18px,3vw,36px);max-width:1600px;width:100%;margin:0 auto}
+.page-head{margin-bottom:26px;align-items:center}
+.page-head h1{font-size:clamp(23px,2vw,30px);letter-spacing:-.035em;color:#142d47}
+.page-head p{font-size:14px;line-height:1.6}
+.stat,.panel{border:1px solid #e9eef4;border-radius:19px;box-shadow:var(--shadow)}
+.stat{padding:21px;background:linear-gradient(145deg,#fff,#fbfcfe)}
+.stat:hover,.book-card:hover{transform:translateY(-4px);box-shadow:0 22px 45px #14283d15}
+.stat-icon{border-radius:12px;background:#edf3f9;color:#234f78}
+.stat strong{font-size:30px;letter-spacing:-.04em}
+.panel{padding:23px;background:#fff}
+.panel-head h3{font-size:17px;letter-spacing:-.02em}
+th{background:#f5f8fb;color:#738399}
+th:first-child{border-radius:9px 0 0 9px}th:last-child{border-radius:0 9px 9px 0}
+td,th{padding:14px 12px}
+.book-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:19px}
+.book-card{border:1px solid #e8edf3;border-radius:17px;box-shadow:0 10px 28px #14283d0b}
+.cover{height:190px;background:radial-gradient(circle at 25% 15%,#49789c,#1c3e5d 65%,#10243a)}
+.book-info{padding:16px}.book-info h3{font-size:14px;line-height:1.5}.book-info p{line-height:1.6}
+.badge{padding:6px 10px}
+.modal{border-radius:20px;padding:25px;box-shadow:0 30px 90px #0004}
+.close{border-radius:10px}
+.toast{border:1px solid #ffffff20;border-radius:13px;backdrop-filter:blur(10px)}
+.footer-note{color:#8fa4b8}
+@media(max-width:1050px){.book-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.login-wrap{grid-template-columns:1fr}.login-hero{min-height:280px;padding:34px 25px}.login-hero .brand-logo{width:104px;height:104px;border-radius:22px}.login-hero h1{font-size:39px;margin:22px 0 12px}.login-hero p{font-size:13px}.login-panel{padding:24px 15px 36px}.login-card{padding:23px;border-radius:20px}.topbar{height:66px}.topbar .brand-logo{width:42px;height:42px}.layout{grid-template-columns:1fr}.sidebar{top:66px}.main{padding:19px 13px}.page-head{align-items:flex-start}.stats{gap:11px}.stat{padding:15px;border-radius:15px}.stat strong{font-size:24px}.panel{padding:15px;border-radius:16px}.book-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.cover{height:145px}.book-info{padding:12px}.book-card{border-radius:14px}}
+@media(max-width:390px){.login-hero h1{font-size:34px}.login-card h2{font-size:26px}.cover{height:120px}}
+
 </style>
 </head>
 <body>
@@ -23,7 +85,7 @@
   </section>
   <section class="login-panel">
     <form class="login-card" id="loginForm">
-      <div class="brand" style="margin-bottom:28px"><img class="brand-logo" src="logo-perpustakaan-jaya.png" alt="Logo Perpustakaan Jaya"><div>PERPUS JAYA<div class="small muted" style="font-weight:500">Sistem Informasi Perpustakaan</div></div></div>
+      <div class="brand" style="margin-bottom:28px"><img class="brand-logo" src="favicon-perpustakaan-jaya.png" alt="Logo Perpustakaan Jaya"><div>PERPUS JAYA<div class="small muted" style="font-weight:500">Sistem Informasi Perpustakaan</div></div></div>
       <h2>Masuk akun</h2><p class="muted" style="margin:5px 0 24px;font-size:14px">Masukkan akun untuk melanjutkan.</p>
       <div class="field"><label>Email</label><input id="username" type="email" autocomplete="username" placeholder="nama@email.com" required></div>
       <div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" placeholder="Masukkan password" required></div>
@@ -33,7 +95,7 @@
       <button class="btn secondary" type="button" id="showRegister" style="width:100%;margin-top:12px">Daftar sebagai Siswa</button>
     </form>
     <form class="login-card hidden" id="registerForm">
-      <div class="brand" style="margin-bottom:28px"><img class="brand-logo" src="logo-perpustakaan-jaya.png" alt="Logo Perpustakaan Jaya"><div>PERPUS JAYA<div class="small muted" style="font-weight:500">Pendaftaran Anggota</div></div></div>
+      <div class="brand" style="margin-bottom:28px"><img class="brand-logo" src="favicon-perpustakaan-jaya.png" alt="Logo Perpustakaan Jaya"><div>PERPUS JAYA<div class="small muted" style="font-weight:500">Pendaftaran Anggota</div></div></div>
       <h2>Daftar akun siswa</h2><p class="muted" style="margin:5px 0 24px;font-size:14px">Isi data berikut untuk membuat akun perpustakaan.</p>
       <div class="field"><label>Nama lengkap</label><input id="regName" autocomplete="name" placeholder="Nama lengkap" required></div>
       <div class="field"><label>Kelas</label><input id="regClass" placeholder="Contoh: XII RPL 1" required></div>
@@ -47,7 +109,7 @@
 </div>
 <div id="appView" class="hidden">
   <header class="topbar">
-    <div style="display:flex;align-items:center;gap:12px"><button class="mobile-menu" id="menuToggle">☰</button><div class="brand"><img class="brand-logo" src="logo-perpustakaan-jaya.png" alt="Logo Perpustakaan Jaya"><span>PERPUS JAYA</span></div></div>
+    <div style="display:flex;align-items:center;gap:12px"><button class="mobile-menu" id="menuToggle">☰</button><div class="brand"><img class="brand-logo" src="favicon-perpustakaan-jaya.png" alt="Logo Perpustakaan Jaya"><span>PERPUS JAYA</span></div></div>
     <div class="userbox"><div class="avatar" id="userAvatar">A</div><div class="user-name"><b id="userName">Admin</b><div class="small muted" id="userRole">Administrator</div></div><button class="btn secondary smallbtn" id="logoutBtn">Keluar</button></div>
   </header>
   <div class="layout">
